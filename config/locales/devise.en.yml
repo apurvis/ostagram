@@ -23,7 +23,7 @@ en:
       unlock_instructions:
         subject: "How to unlock an account"
     omniauth_callbacks:
-      failure: "You can not log in to the account entry from% {kind}, because \ "% {reason} \"."
+      failure: "You can not log in to the account entry from% {kind}, because \"% {reason} \"."
       success: "Login configured accounting record of% {kind}."
     passwords:
       no_token: "This page is available only when you click on a link in an email with instructions to reset your password. If you've followed a link in an email, please make sure that you used the entire URL."
