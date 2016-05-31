@@ -429,21 +429,6 @@ class ImageJob
     write_log(msg, @worker_name)
   end
 
-
-
-
-
-
-  #def self.perform(config)
-  # @hostname = config["host"]
-  # @username = config["username"]
-  # @password = config["password"]
-  # @local_tmp_path = "/home/matthew/RubymineProjects/ostagram/tmp/output"#Rails.root.join('tmp/output')
-  # @remote_neural_path = "/home/margo/neural-style-master"#config["remote_neural_path"]
-  # @iteration_count = 5
-  #
-  #self.execute()
-  # end
   def process_image1
     comm = "cd #{@remote_neural_path} && export PATH=$PATH:/home/margo/torch/install/bin && export LD_LIBRARY_PATH=/home/margo/torch/install/lib"
     comm += " && th neural_style.lua -gpu -1 -image_size 500 -num_iterations #{@iteration_count*100}"
@@ -453,7 +438,6 @@ class ImageJob
     sleep(10)
     Resque.remove_queue(:server1_wait_answer) ##AND KILL Buhahaha
   end
-
 
   def process_image3
     begin

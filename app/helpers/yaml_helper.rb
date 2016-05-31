@@ -1,7 +1,6 @@
 require 'yaml'
 
 module YamlHelper
-
   def get_param_config(file_name,key1,key2)
     load_settings(file_name)[key1.to_s][key2.to_s]
   end
@@ -14,17 +13,15 @@ module YamlHelper
   end
 
   def load_settings(file_name)
-    #file = Rails.root.join(@file_name)
     if File.exist?(file_name)
-      @config = YAML.load(File.read(file_name))
+      puts "file #{file_name} exist!"
+      YAML.load(File.read(file_name))
     else
       {}
     end
   end
 
   def save_settings(file_name, settings)
-    #file = Rails.root.join(@file_name)
     File.write(file_name, settings.to_yaml)
   end
-
 end

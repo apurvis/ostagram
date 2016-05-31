@@ -9,21 +9,19 @@
 
 # Make sure your secret_key_base is kept private
 # if you're sharing your code publicly.
+
 require 'securerandom'
 include YamlHelper
 
-
 def load_config
   Ostagram::Application.config.secret_key_base = secure_token
-  #
-  file = Rails.root.join('config/config.secret')
-  #par = get_param_config(file, :server1, :password)
-  #
+  file = File.join(Rails.root, 'config', 'config.secret')
+
   #Ostagram::Application.config.action_mailer.delivery_method = :smtp
   par = load_settings(file)
   par = par["smtp_settings"]
   params = {}
-  par.each { |p,v| params[p.to_sym] = v.to_s}
+  par.each { |p,v| params[p.to_sym] = v.to_s }
   Ostagram::Application.config.action_mailer.smtp_settings = params
 end
 
@@ -39,7 +37,4 @@ def secure_token
   end
 end
 
-
-
-
-load_config()
+load_config
