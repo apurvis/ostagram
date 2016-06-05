@@ -17,7 +17,7 @@
 /tmp
 /.idea/*
 /shared
-/config/*.secret
+/config/config.secret
 /public/uploads/*
 /config/database.yml
 #/config/secrets.yml

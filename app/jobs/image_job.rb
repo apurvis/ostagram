@@ -1,5 +1,6 @@
 require 'net/ssh'
 require 'net/scp'
+
 class ImageJob
   include DebHelper
   include ConstHelper
@@ -127,43 +128,9 @@ class ImageJob
     cl.queue_images.where("status = 1").order('created_at ASC').first
   end
 
-
-  def execute_debug
-    #set_config(@worker_name)
-    #is_luajit_poc_exist
-    #return
-
-    loop do
-
-      imgs = get_images_from_queue #QueueImage.where("status = #{STATUS_NOT_PROCESSED}").order('created_at ASC')
-      if !imgs.nil? && imgs.count > 0 && !imgs.first.nil?
-        set_config(@worker_name)
-        item = imgs.first
-
-        #
-        process_time = Time.now
-
-        #Change status to IN_PROCESS
-        #item.update({:stime => process_time})
-        #i = 1
-        #10.times do
-        # i += 1
-        #end
-        download_n_save_result(10,item)
-        #
-        process_time = Time.at(Time.now - process_time)
-        item.update({:status => STATUS_PROCESSED, :ftime => Time.now, :ptime => process_time})
-      else
-        log "-----------------------Stop Demon---------------------------"
-        return "Zero"
-      end
-     # sleep 5
-    end
-  end
-
   protected
 
-  def is_luajit_proc_exist
+  def luajit_proc_exists?
     begin
       Net::SSH.start(@hostname, @username, :password => @password) do |ssh|
         com = "ps axu | grep luajit"
@@ -209,7 +176,7 @@ class ImageJob
     #Upload images to workserver
     @content_image_name = "content.#{item.content.image.to_s.split('.').last}"
     @style_image_name = "style.#{item.style.image.to_s.split('.').last}"
-    #log "4"
+
     if @square_format
       return "upload_content_image: false" unless upload_image(item.content.image.to_proc.url, "output/#{@content_image_name}")
     else
@@ -218,16 +185,16 @@ class ImageJob
     return "upload_stule_image: false" unless upload_image(item.style.image, "output/#{@style_image_name}")
     log "upload_content_style_image"
     #Run process
-    send_start_process_comm()
+    send_start_process_comm
     log "send_start_process_comm"
     sleep 10
-    #log "6"
+
     # Wait processed images
     errors = wait_images(item)
-    #
+
     log "process time: #{Time.now - process_time}"
     process_time = Time.at(Time.now - process_time)
-    #
+
     if errors.nil?
       item.update({:status => item.end_status, :ftime => Time.now, :ptime => process_time})
       "OK"
@@ -279,13 +246,9 @@ class ImageJob
   end
 
   def wait_images(item)
-    # Check remote neural process start
-    #res = is_luajit_proc_exist#check_neural_start
-    #log "DEBUG check_neural_start fail: #{res}" unless res.nil?
-    #return res unless res.nil?
     log "wait_images"
-    #
     iter = 1
+
     while true
       begin
         break if iter > @iteration_count
@@ -308,10 +271,12 @@ class ImageJob
       rescue
 
       end
-      res = is_luajit_proc_exist
-      return res unless res.nil?
-      #
-      sleep 2
+
+      if (res = luajit_proc_exists?)
+        return res
+      else
+        sleep 2
+      end
     end
     nil
   end
@@ -427,57 +392,6 @@ class ImageJob
 
   def log(msg)
     write_log(msg, @worker_name)
-  end
-
-
-
-
-
-
-  #def self.perform(config)
-  # @hostname = config["host"]
-  # @username = config["username"]
-  # @password = config["password"]
-  # @local_tmp_path = "/home/matthew/RubymineProjects/ostagram/tmp/output"#Rails.root.join('tmp/output')
-  # @remote_neural_path = "/home/margo/neural-style-master"#config["remote_neural_path"]
-  # @iteration_count = 5
-  #
-  #self.execute()
-  # end
-  def process_image1
-    comm = "cd #{@remote_neural_path} && export PATH=$PATH:/home/margo/torch/install/bin && export LD_LIBRARY_PATH=/home/margo/torch/install/lib"
-    comm += " && th neural_style.lua -gpu -1 -image_size 500 -num_iterations #{@iteration_count*100}"
-    comm += " -style_image output/#{@style_image_name} -content_image output/#{@content_image_name} -output_image output/out.png"
-    comm += " > output/output.log 2> output/error.log & \n"
-    Resque.enqueue(WaitJob, @hostname, @username, @password, comm)
-    sleep(10)
-    Resque.remove_queue(:server1_wait_answer) ##AND KILL Buhahaha
-  end
-
-
-  def process_image3
-    begin
-      # Sent task for image
-      Net::SSH.start(@hostname, @username, :password => @password) do |ssh|
-        comm = "cd #{@remote_neural_path} && export PATH=$PATH:/home/margo/torch/install/bin"
-        comm += " && export LD_LIBRARY_PATH=/home/margo/torch/install/lib"
-        comm += " && th neural_style.lua #{@init_params}"
-        comm += " -style_image output/#{@style_image_name} -content_image output/#{@content_image_name}"# && ls \n "
-        comm += " > output/output.log 2> output/error.log & && exit"
-        @conn = ssh.exec!(comm)
-        #ssh.shutdown!
-        #ssh.wait(10)
-        #ssh.open_channel do |c|
-        #  c.exec(comm)
-        #end
-
-      end
-
-    rescue
-      return false
-    end
-    @conn
-    #true
   end
 
   def download_data(filename)
