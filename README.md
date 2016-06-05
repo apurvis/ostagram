@@ -44,6 +44,11 @@ $ cp config/config.secret.example config/config.secret
 $ cp config/database.yml.secret database.yml
 ```
 
+Create a postgresql user and grant privileges
+```bash
+$ createuser -d ostagram
+```
+
 ## More Information
 
 Для обработки используется данный алгоритм https://github.com/jcjohnson/neural-style

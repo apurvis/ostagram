@@ -1,11 +1,11 @@
 require 'yaml'
 
 module YamlHelper
-  def get_param_config(file_name,key1,key2)
+  def get_param_config(file_name, key1, key2)
     load_settings(file_name)[key1.to_s][key2.to_s]
   end
 
-  def update_config(file_name,key1,key2, value)
+  def update_config(file_name, key1, key2, value)
     settings = load_settings(file_name)
     settings[key1.to_s] ||= {}
     settings[key1.to_s][key2.to_s] = value.to_s
@@ -14,7 +14,6 @@ module YamlHelper
 
   def load_settings(file_name)
     if File.exist?(file_name)
-      puts "file #{file_name} exist!"
       YAML.load(File.read(file_name))
     else
       {}
